@@ -10,22 +10,32 @@
 // @run-at       document-start
 // @license      MIT
 // ==/UserScript==
-var notDone = 1;
+var replacedURL = 0;
+var oldHref = document.location.href;
+
+function getVideoId(url) {
+    let regex = /(youtu.*be.*)\/(watch\?v=|embed\/|v|shorts|)(.*?((?=[&#?])|$))/gm;
+    return regex.exec(url)[3];
+}
 
 window.onload = function() {
     const queryString = window.location.search
     const urlParams = new URLSearchParams(queryString);
     var bodyList = document.querySelector("body")
     var observer = new MutationObserver(function(mutationList, observer) {
+        if (oldHref != document.location.href) {
+            oldHref = document.location.href;
+            replacedURL = 0;
+        }
         mutationList.forEach(function(mutation) {
             var videoContainer = document.getElementById('full-bleed-container');
             if (videoContainer)
             {
-                if(notDone)
+                if(!replacedURL)
                 {
-                    videoContainer.innerHTML = '<iframe src=https://www.youtube.com/embed/' + urlParams.get('v') + ' width=100%></iframe>';
+                    videoContainer.innerHTML = '<iframe src=https://www.youtube.com/embed/' + getVideoId(document.location.href) + ' width=100%></iframe>';
                 }
-                notDone = 0;
+                replacedURL = 1;
             }
         });
     });
@@ -35,3 +45,4 @@ window.onload = function() {
     };
     observer.observe(bodyList, config);
 };
+
